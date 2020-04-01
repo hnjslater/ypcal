@@ -3,9 +3,9 @@
 #include <date/date.h>
 #include <date/chrono_io.h>
 
-const std::string NORMAL = "\e[0m";
-const std::string RED = "\e[31m";
-const std::string YELLOW = "\e[33m";
+const std::string NORMAL = "\x1b[0m";
+const std::string RED = "\x1b[31m";
+const std::string YELLOW = "\x1b[33m";
 
 auto main(int argc, char** argv) -> int {
     date::year current_y;

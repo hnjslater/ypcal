@@ -1,2 +1,2 @@
 ypcal: main.cpp
-	$(CXX) -Wall -Werror -Wextra -I date/include --std=c++20 $^ -o $@
+	$(CXX) -Wall -Werror -Wextra -Wold-style-cast -pedantic -I date/include --std=c++20 $^ -o $@
