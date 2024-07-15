@@ -13,37 +13,32 @@ auto main(int argc, char** argv) -> int {
     std::chrono::year_month_day today = std::chrono::time_point_cast<std::chrono::days>(std::chrono::system_clock::now());
 
     if (argc == 1) {
-        // Set current to the first day of the current year.
-        // This seems obvious but took a long time to work out.
-        current = std::chrono::time_point_cast<std::chrono::days>(floor<std::chrono::years>(std::chrono::system_clock::now()));
-        current_y = std::chrono::year_month_day{current}.year();
+        current = today.year()/1/1;
+        current_y = today.year();
     }
     else {
         current_y = std::chrono::year{std::stoi(argv[1])};
         current = std::chrono::sys_days{current_y/1/1};
     }
 
-    std::map<unsigned,int> padding;
-    long num_columns = 0;
+    std::map<int,int> padding;
+    unsigned num_columns = 0;
     for (unsigned i = 1; i <= 12; i++) {
-	auto p = ((std::chrono::weekday{current_y/std::chrono::month{i}/1} - std::chrono::Monday).count());
-	if (p < 0) {
-		p += 7;
-	}
+	int p = ((std::chrono::weekday{current_y/std::chrono::month{i}/1}-std::chrono::Monday).count());
 	padding[i] = p;
 	auto last_day_month = current_y/std::chrono::month{i}/std::chrono::last;
 
-	num_columns = std::max(num_columns,p + static_cast<unsigned int	>(last_day_month.day()));
+	num_columns = std::max(num_columns, p+static_cast<unsigned>(last_day_month.day()));
     }
 
     std::cout << "   ";
-
-    for (auto j = 1; j <= num_columns; j++) {
+    for (unsigned j = 1; j <= num_columns; j++) {
 	// First two letters of each weekday name
         std::cout << std::format(" {:%a}", std::chrono::weekday(j%7)).substr(0,3);
     }
     std::cout << "\n";
-    std::chrono::year_month_day current_ymd = current_y/std::chrono::January/1;
+
+    std::chrono::year_month_day current_ymd = current_y/1/1;
     while (current_ymd.year() == current_y) {
         std::cout << NORMAL;
         std::cout << current_ymd.month() << " ";
