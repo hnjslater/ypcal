@@ -1,13 +1,50 @@
 #include <chrono>
+#include <cstdio>
 #include <format>
 #include <iostream>
 #include <map>
 
-const std::string NORMAL = "\x1b[0m";
-const std::string RED = "\x1b[31m";
-const std::string YELLOW = "\x1b[33m";
+#include <curses.h>
+#include <term.h>
+#include <unistd.h>
+
+enum class terminal_mode { normal, today, weekend };
+
+class output_formatter {
+  std::map<terminal_mode, std::string> colors;
+  terminal_mode mode;
+
+public:
+  output_formatter() : mode(terminal_mode::normal) {
+    auto num_colors = 0;
+    if (isatty(STDOUT_FILENO)) {
+      // TODO: if we add a verbose mode, lets grab any errors and print them
+      auto result = setupterm(NULL, STDOUT_FILENO, NULL);
+      if (result == OK) {
+        num_colors = tigetnum("colors");
+      }
+      if (num_colors >= 16) {
+	// TODO: use ncurses lib for this too.
+        colors[terminal_mode::normal] = "\x1b[0m";
+        colors[terminal_mode::today] = "\x1b[33m";
+        colors[terminal_mode::weekend] = "\x1b[31m";
+      }
+    }
+  }
+  auto operator()(terminal_mode req_mode) {
+    if (mode == req_mode) {
+	    return;
+    }
+    auto it = colors.find(req_mode);
+    if (it == colors.end()) {
+	    return;
+    }
+    std::cout << it->second;
+  }
+};
 
 auto main(int argc, char **argv) -> int {
+  output_formatter of;
   std::chrono::year_month_day today =
       std::chrono::time_point_cast<std::chrono::days>(
           std::chrono::system_clock::now());
@@ -44,7 +81,7 @@ auto main(int argc, char **argv) -> int {
   std::chrono::year_month_day current_ymd = current_y / 1 / 1;
   auto current_padding = padding.begin();
   while (current_ymd.year() == current_y) {
-    std::cout << NORMAL;
+    of(terminal_mode::normal);
     std::cout << current_ymd.month() << " ";
 
     for (int p = 0; p < *current_padding; p++) {
@@ -55,12 +92,12 @@ auto main(int argc, char **argv) -> int {
     std::chrono::month current_m = current_ymd.month();
     while (current_ymd.month() == current_m) {
       if (current_ymd == today) {
-        std::cout << YELLOW;
+        of(terminal_mode::today);
       } else if (std::chrono::weekday{current_ymd} == std::chrono::Sunday ||
                  std::chrono::weekday{current_ymd} == std::chrono::Saturday) {
-        std::cout << RED;
+        of(terminal_mode::weekend);
       } else {
-        std::cout << NORMAL;
+        of(terminal_mode::normal);
       }
       std::cout << current_ymd.day() << " ";
 
@@ -70,5 +107,5 @@ auto main(int argc, char **argv) -> int {
 
     std::cout << "\n";
   }
-  std::cout << NORMAL;
+  of(terminal_mode::normal);
 }
