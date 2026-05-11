@@ -24,7 +24,7 @@ public:
         num_colors = tigetnum("colors");
       }
       if (num_colors >= 16) {
-	// TODO: use ncurses lib for this too.
+        // TODO: use ncurses lib for this too.
         colors[terminal_mode::normal] = "\x1b[0m";
         colors[terminal_mode::today] = "\x1b[33m";
         colors[terminal_mode::weekend] = "\x1b[31m";
@@ -33,13 +33,14 @@ public:
   }
   auto operator()(terminal_mode req_mode) {
     if (mode == req_mode) {
-	    return;
+      return;
     }
     auto it = colors.find(req_mode);
     if (it == colors.end()) {
-	    return;
+      return;
     }
     std::cout << it->second;
+    mode = req_mode;
   }
 };
 
@@ -100,11 +101,11 @@ auto main(int argc, char **argv) -> int {
         of(terminal_mode::normal);
       }
       std::cout << current_ymd.day() << " ";
+      of(terminal_mode::normal);
 
       current += std::chrono::days{1};
       current_ymd = current;
     }
-
     std::cout << "\n";
   }
   of(terminal_mode::normal);
