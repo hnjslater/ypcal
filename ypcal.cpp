@@ -56,7 +56,6 @@ auto main(int argc, char **argv) -> int {
   } else {
     current_y = std::chrono::year{std::stoi(argv[1])};
   }
-
   std::vector<int> padding;
   int num_columns = 0;
   for (auto current_ym = current_y / 1; current_ym.year() == current_y;
@@ -82,15 +81,21 @@ auto main(int argc, char **argv) -> int {
   std::chrono::year_month_day current_ymd = current_y / 1 / 1;
   auto current_padding = padding.begin();
   while (current_ymd.year() == current_y) {
-    of(terminal_mode::normal);
-    std::cout << current_ymd.month() << " ";
+    auto columns_printed = 0;
+    // need this for the month at the end of the row.
+    std::chrono::month current_m = current_ymd.month();
 
+    of(terminal_mode::normal);
+    std::cout << current_m << " ";
+
+    // Left Padding
     for (int p = 0; p < *current_padding; p++) {
       std::cout << "   ";
+      columns_printed++;
     }
     current_padding++;
 
-    std::chrono::month current_m = current_ymd.month();
+    // Days
     while (current_ymd.month() == current_m) {
       if (current_ymd == today) {
         of(terminal_mode::today);
@@ -102,10 +107,18 @@ auto main(int argc, char **argv) -> int {
       }
       std::cout << current_ymd.day() << " ";
       of(terminal_mode::normal);
+      columns_printed++;
 
       current += std::chrono::days{1};
       current_ymd = current;
     }
+
+    // Right Padding
+    while (columns_printed < num_columns) {
+      std::cout << "   ";
+      columns_printed++;
+    }
+    std::cout << current_m;
     std::cout << "\n";
   }
   of(terminal_mode::normal);
